@@ -86,6 +86,36 @@ with final.pkgs.lib; let
     which-key-nvim
   ];
 
+  # The subset of the above that still pulls its weight when Neovim is embedded
+  # in VS Code. Completion, pickers, git UIs, statuslines and LSP are all things
+  # VS Code already provides, so they are left out.
+  vscode-plugins = with pkgs.vimPlugins; [
+    nvim-treesitter.withAllGrammars # required by nvim-treesitter-textobjects
+    nvim-treesitter-textobjects
+    nvim-surround
+    vim-unimpaired
+    vim-repeat
+    eyeliner-nvim
+  ];
+
+  # Config files to leave out of the VS Code derivation, either because VS Code
+  # owns the feature, or because they configure a plugin that is not in
+  # `vscode-plugins`. Note that `nvim/init.lua` is always included, so the
+  # parts of it that only make sense in a terminal are guarded with
+  # `if not vim.g.vscode then` instead.
+  vscode-ignore-config = [
+    "^plugin/completion.lua" # nvim-cmp
+    "^plugin/telescope.lua"
+    "^plugin/lualine.lua"
+    "^plugin/statuscol.lua"
+    "^plugin/gitsigns.lua"
+    "^plugin/neogit.lua"
+    "^plugin/diffview.lua"
+    "^plugin/which-key.lua"
+    "^plugin/autocommands.lua" # LSP keymaps + nvim-navic
+    "^ftplugin/.*" # start language servers
+  ];
+
   extraPackages = with pkgs; [
     # language servers, etc.
     lua-language-server
@@ -107,6 +137,17 @@ in {
     inherit extraPackages;
     appName = "nvim-dev";
     wrapRc = false;
+  };
+
+  # A slimmed-down derivation for the vscode-neovim extension.
+  # `appName` renames the binary to `nvim-vscode`, so it can be installed
+  # alongside `nvim-pkg`, and gives it its own state/shada directory.
+  # No `extraPackages`: VS Code brings its own language servers.
+  nvim-vscode = mkNeovim {
+    plugins = vscode-plugins;
+    ignoreConfigRegexes = vscode-ignore-config;
+    appName = "nvim-vscode";
+    withSqlite = false;
   };
 
   # This can be symlinked in the devShell's shellHook

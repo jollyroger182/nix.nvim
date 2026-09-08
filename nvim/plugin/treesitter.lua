@@ -56,12 +56,15 @@ vim.keymap.set({ 'n', 'x', 'o' }, '[P', function()
   require('nvim-treesitter-textobjects.move').goto_previous_end('@parameter.outer', 'textobjects')
 end, { desc = 'previous [P]arameter (end)' })
 
+-- Not included in the slim VS Code derivation: VS Code draws its own
+-- sticky scroll and owns commenting.
+if not vim.g.vscode then
+  require('treesitter-context').setup {
+    max_lines = 3,
+  }
 
-require('treesitter-context').setup {
-  max_lines = 3,
-}
-
-require('ts_context_commentstring').setup()
+  require('ts_context_commentstring').setup()
+end
 
 -- Tree-sitter based folding
 -- vim.opt.foldmethod = 'expr'

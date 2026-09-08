@@ -292,6 +292,35 @@ you can run Neovim with `nvim-dev` to automatically reload your lua configuratio
 [^3]: Assuming Linux. Refer to `:h initialization` for Darwin.
 
 
+## :computer: VS Code (vscode-neovim)
+
+The flake also exposes `packages.nvim-vscode`, a slim build for the
+[vscode-neovim](https://github.com/vscode-neovim/vscode-neovim) extension.
+It keeps the editing plugins (treesitter textobjects, surround, unimpaired,
+eyeliner) and the plain-Vim keymaps, and drops everything VS Code already
+provides: completion, pickers, git UIs, the statusline and LSP.
+Its binary is named `nvim-vscode`, so it can be installed next to `nvim-pkg`.
+
+Two lists in `nix/neovim-overlay.nix` control what goes in: `vscode-plugins`
+and `vscode-ignore-config`. `nvim/init.lua` cannot be filtered out (it is always
+read by `mkNeovim`), so the parts of it that only make sense in a terminal are
+guarded with `if not vim.g.vscode then`. The extension sets `g:vscode` before
+sourcing any user config, so the same guard works in any config file.
+
+Install it, then point the extension at it:
+
+```json
+{
+  "vscode-neovim.neovimExecutablePaths.darwin": "/etc/profiles/per-user/<user>/bin/nvim-vscode"
+}
+```
+
+For no config at all, set `"vscode-neovim.neovimClean": true` (equivalent to
+`nvim --clean`) instead, or point `vscode-neovim.neovimInitVimPaths.darwin` at
+a minimal init file, which is passed as `-u` and overrides the wrapper's
+`VIMINIT`.
+
+
 ## :link: Alternative / similar projects
 
 - [`kickstart.nvim`](https://github.com/nvim-lua/kickstart.nvim):

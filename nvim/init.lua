@@ -13,16 +13,9 @@ local opt = vim.o
 -- Search down into subfolders
 opt.path = vim.o.path .. '**'
 
-opt.number = true
-opt.relativenumber = true
-opt.cursorline = true
-opt.lazyredraw = true
 opt.showmatch = true -- Highlight matching parentheses, etc
 opt.incsearch = true
 opt.hlsearch = true
-
-opt.spell = true
-opt.spelllang = 'en'
 
 opt.expandtab = true
 opt.tabstop = 2
@@ -34,10 +27,24 @@ opt.nrformats = 'bin,hex' -- 'octal'
 opt.undofile = true
 opt.splitright = true
 opt.splitbelow = true
-opt.cmdheight = 0
 
-opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
-opt.colorcolumn = '100'
+-- Options that only make sense when Neovim draws its own UI.
+-- The vscode-neovim extension sets g:vscode before this file is sourced,
+-- and VS Code owns the gutter, the command line and the window decorations.
+-- A few of these (spell, cmdheight = 0, colorcolumn) actively get in the way there.
+if not vim.g.vscode then
+  opt.number = true
+  opt.relativenumber = true
+  opt.cursorline = true
+  opt.lazyredraw = true
+  opt.cmdheight = 0
+
+  opt.spell = true
+  opt.spelllang = 'en'
+
+  opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
+  opt.colorcolumn = '100'
+end
 
 -- Configure Neovim diagnostic messages
 

@@ -58,6 +58,8 @@
       packages = rec {
         default = nvim;
         nvim = pkgs.nvim-pkg;
+        # Slim build for the vscode-neovim extension
+        nvim-vscode = pkgs.nvim-vscode;
       };
       devShells = {
         default = shell;
