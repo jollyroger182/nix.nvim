@@ -72,6 +72,7 @@ with final.pkgs.lib; let
     # ^ navigation/editing enhancement plugins
     # Useful utilities
     nvim-unception # Prevent nested neovim sessions | nvim-unception
+    vim-wakatime # Automatic time tracking | https://github.com/wakatime/vim-wakatime/
     # ^ Useful utilities
     # libraries that other plugins depend on
     sqlite-lua
