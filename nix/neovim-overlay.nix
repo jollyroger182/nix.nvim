@@ -1,10 +1,13 @@
 # This overlay, when applied to nixpkgs, adds the final neovim derivation to nixpkgs.
-{inputs}: final: prev:
-with final.pkgs.lib; let
+{ inputs }:
+final: prev:
+with final.pkgs.lib;
+let
   pkgs = final;
 
   # Use this to create a plugin from a flake input
-  mkNvimPlugin = src: pname:
+  mkNvimPlugin =
+    src: pname:
     pkgs.vimUtils.buildVimPlugin {
       inherit pname src;
       version = src.lastModifiedDate;
@@ -16,8 +19,8 @@ with final.pkgs.lib; let
 
   # This is the helper function that builds the Neovim derivation.
   mkNeovim = pkgs.callPackage ./mkNeovim.nix {
-      inherit (pkgs-locked) wrapNeovimUnstable neovimUtils;
-    };
+    inherit (pkgs-locked) wrapNeovimUnstable neovimUtils;
+  };
 
   # A plugin can either be a package or an attrset, such as
   # { plugin = <plugin>; # the package, e.g. pkgs.vimPlugins.nvim-cmp
@@ -116,12 +119,24 @@ with final.pkgs.lib; let
     "^ftplugin/.*" # start language servers
   ];
 
-  extraPackages = with pkgs; [
-    # language servers, etc.
-    lua-language-server
-    nil # nix LSP
-  ];
-in {
+  # Runtime deps every derivation needs, regardless of UI.
+  commonPackages =
+    with pkgs;
+    lib.optionals stdenv.hostPlatform.isLinux [
+      wl-clipboard
+      xclip
+    ];
+
+  extraPackages =
+    with pkgs;
+    commonPackages
+    ++ [
+      # language servers, etc.
+      lua-language-server
+      nil # nix LSP
+    ];
+in
+{
   # This is the neovim derivation
   # returned by the overlay
   nvim-pkg = mkNeovim {
@@ -142,12 +157,14 @@ in {
   # A slimmed-down derivation for the vscode-neovim extension.
   # `appName` renames the binary to `nvim-vscode`, so it can be installed
   # alongside `nvim-pkg`, and gives it its own state/shada directory.
-  # No `extraPackages`: VS Code brings its own language servers.
+  # Only `commonPackages`: VS Code brings its own language servers, but it
+  # does not provide Neovim with a clipboard tool.
   nvim-vscode = mkNeovim {
     plugins = vscode-plugins;
     ignoreConfigRegexes = vscode-ignore-config;
     appName = "nvim-vscode";
     withSqlite = false;
+    extraPackages = commonPackages;
   };
 
   # This can be symlinked in the devShell's shellHook
