@@ -141,8 +141,19 @@ keymap.set('n', '<space>e', function()
   end
   vim.api.nvim_win_set_config(winid or 0, { focusable = true })
 end, { noremap = true, silent = true, desc = 'diagnostics floating window' })
-keymap.set('n', '[d', diagnostic.goto_prev, { noremap = true, silent = true, desc = 'previous [d]iagnostic' })
-keymap.set('n', ']d', diagnostic.goto_next, { noremap = true, silent = true, desc = 'next [d]iagnostic' })
+if vim.g.vscode then
+  -- Diagnostics live in VS Code, not Neovim, so jump using VS Code's markers
+  local vscode = require('vscode')
+  keymap.set('n', '[d', function()
+    vscode.action('editor.action.marker.prev')
+  end, { noremap = true, silent = true, desc = 'previous [d]iagnostic' })
+  keymap.set('n', ']d', function()
+    vscode.action('editor.action.marker.next')
+  end, { noremap = true, silent = true, desc = 'next [d]iagnostic' })
+else
+  keymap.set('n', '[d', diagnostic.goto_prev, { noremap = true, silent = true, desc = 'previous [d]iagnostic' })
+  keymap.set('n', ']d', diagnostic.goto_next, { noremap = true, silent = true, desc = 'next [d]iagnostic' })
+end
 keymap.set('n', '[e', function()
   diagnostic.goto_prev {
     severity = severity.ERROR,
